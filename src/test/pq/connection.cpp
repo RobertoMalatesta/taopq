@@ -18,16 +18,16 @@ void run()
 #endif
 
    // connection_string must be valid
-   TEST_THROWS( tao::pq::connection::create( "=" ) );
+   TEST_THROWS( tao::pq::connection<>::create( "=" ) );
 
    // connection_string must reference an existing and accessible database
-   TEST_THROWS( tao::pq::connection::create( "dbname=DOES_NOT_EXIST" ) );
+   TEST_THROWS( tao::pq::connection<>::create( "dbname=DOES_NOT_EXIST" ) );
 
    // open a connection
-   const auto connection = tao::pq::connection::create( connection_string );
+   const auto connection = tao::pq::connection<>::create( connection_string );
 
    // open a seconds, independent connection (and discard it immediately)
-   (void)tao::pq::connection::create( connection_string );
+   (void)tao::pq::connection<>::create( connection_string );
 
    // execute an SQL statement
    connection->execute( "DROP TABLE IF EXISTS tao_connection_test" );

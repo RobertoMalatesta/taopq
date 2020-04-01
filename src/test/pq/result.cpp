@@ -11,7 +11,7 @@
 
 void run()  // NOLINT(readability-function-size)
 {
-   const auto connection = tao::pq::connection::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
+   const auto connection = tao::pq::connection<>::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
 
    TEST_EXECUTE( connection->execute( "SELECT NULL" ) );
    TEST_ASSERT( connection->execute( "SELECT NULL" ).is_null( 0, 0 ) );

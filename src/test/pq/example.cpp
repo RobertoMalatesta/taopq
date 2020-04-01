@@ -10,7 +10,7 @@
 void run()
 {
    // open a connection
-   const auto conn = tao::pq::connection::create( "dbname=template1" );
+   const auto conn = tao::pq::connection<>::create( "dbname=template1" );
 
    // execute statements directly
    conn->execute( "DROP TABLE IF EXISTS tao_example" );

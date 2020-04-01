@@ -9,7 +9,7 @@
 
 void run()
 {
-   const auto connection = tao::pq::connection::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
+   const auto connection = tao::pq::connection<>::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
    connection->execute( "DROP TABLE IF EXISTS tao_table_writer_test" );
    connection->execute( "CREATE TABLE tao_table_writer_test ( a INTEGER NOT NULL, b DOUBLE PRECISION, c TEXT )" );
 
@@ -37,7 +37,7 @@ void run()
    }
 
    TEST_ASSERT_MESSAGE( "validate reported result size", tw.finish() == 100000 );
-   TEST_ASSERT_MESSAGE( "validate actual result size", connection->execute( "SELECT COUNT(*) FROM tao_table_writer_test" ).as< std::size_t >() == 100000 );
+   TEST_ASSERT_MESSAGE( "validate actual result size", connection->execute( "SELECT COUNT(*) FROM tao_table_writer_test" ).template as< std::size_t >() == 100000 );
 
    TEST_THROWS( tao::pq::table_writer( connection->direct(), "SELECT 42" ) );
    TEST_THROWS( connection->execute( "COPY tao_table_writer_test ( a, b, c ) FROM STDIN" ) );

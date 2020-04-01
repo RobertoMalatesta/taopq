@@ -11,7 +11,7 @@
 
 void run()
 {
-   const auto connection = tao::pq::connection::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
+   const auto connection = tao::pq::connection<>::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
 
    TEST_ASSERT( connection->execute( "SELECT 42" )[ 0 ].as< int >() == 42 );
    TEST_ASSERT( connection->execute( "SELECT 1764" )[ 0 ].optional< int >() == 1764 );

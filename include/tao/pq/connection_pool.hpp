@@ -11,45 +11,47 @@
 #include <tao/pq/internal/pool.hpp>
 
 #include <tao/pq/connection.hpp>
+#include <tao/pq/parameter_traits.hpp>
 #include <tao/pq/result.hpp>
 
 namespace tao::pq
 {
+   template< template< typename... > class DefaultTraits = parameter_text_traits >
    class connection_pool
-      : public internal::pool< pq::connection >
+      : public internal::pool< connection< DefaultTraits > >
    {
    private:
       const std::string m_connection_info;
 
-      [[nodiscard]] auto v_create() const -> std::unique_ptr< pq::connection > override;
-
-      [[nodiscard]] auto v_is_valid( pq::connection& c ) const noexcept -> bool override;
-
-   public:
-      [[nodiscard]] static auto create( const std::string& connection_info ) -> std::shared_ptr< connection_pool >;
-
-   private:
-      // pass-key idiom
-      class private_key
+      [[nodiscard]] auto v_create() const -> std::unique_ptr< connection< DefaultTraits > > override
       {
-         private_key() = default;
-         friend auto connection_pool::create( const std::string& connection_info ) -> std::shared_ptr< connection_pool >;
-      };
+         return std::make_unique< pq::connection< DefaultTraits > >( m_connection_info );
+      }
+
+      [[nodiscard]] auto v_is_valid( connection< DefaultTraits >& c ) const noexcept -> bool override
+      {
+         return c.is_open();
+      }
 
    public:
-      connection_pool( const private_key& /*unused*/, const std::string& connection_info ) noexcept  // NOLINT(modernize-pass-by-value)
+      explicit connection_pool( const std::string& connection_info ) noexcept  // NOLINT(modernize-pass-by-value)
          : m_connection_info( connection_info )
       {}
+
+      [[nodiscard]] static auto create( const std::string& connection_info ) -> std::shared_ptr< connection_pool >
+      {
+         return std::make_shared< connection_pool >( connection_info );
+      }
 
       [[nodiscard]] auto connection()
       {
          return this->get();
       }
 
-      template< template< typename... > class Traits = parameter_text_traits, typename... Ts >
+      template< template< typename... > class Traits = DefaultTraits, typename... Ts >
       auto execute( Ts&&... ts )
       {
-         return this->connection()->direct()->execute< Traits >( std::forward< Ts >( ts )... );
+         return this->connection()->direct()->template execute< Traits >( std::forward< Ts >( ts )... );
       }
    };
 

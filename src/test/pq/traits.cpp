@@ -43,7 +43,7 @@ namespace example
 
 void run()
 {
-   const auto connection = tao::pq::connection::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
+   const auto connection = tao::pq::connection<>::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
 
    connection->execute( "DROP TABLE IF EXISTS tao_parameter_test" );
    connection->execute( "CREATE TABLE tao_parameter_test ( a INTEGER PRIMARY KEY, b INTEGER, c INTEGER, d INTEGER )" );

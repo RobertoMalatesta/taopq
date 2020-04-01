@@ -6,7 +6,8 @@
 
 #include <tao/pq/connection.hpp>
 
-void check_nested( const std::shared_ptr< tao::pq::connection >& connection, const std::shared_ptr< tao::pq::transaction >& tr )
+template< typename Connection, typename Transaction >
+void check_nested( const std::shared_ptr< Connection >& connection, const std::shared_ptr< Transaction >& tr )
 {
    TEST_THROWS( connection->direct() );
    TEST_THROWS( connection->transaction() );
@@ -46,7 +47,7 @@ void check_nested( const std::shared_ptr< tao::pq::connection >& connection, con
 
 void run()
 {
-   const auto connection = tao::pq::connection::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
+   const auto connection = tao::pq::connection<>::create( tao::pq::internal::getenv( "TAOPQ_TEST_DATABASE", "dbname=template1" ) );
 
    connection->execute( "DROP TABLE IF EXISTS tao_transaction_test" );
    connection->execute( "CREATE TABLE tao_transaction_test ( a INTEGER PRIMARY KEY )" );
@@ -100,10 +101,10 @@ void run()
    TEST_EXECUTE( connection->transaction()->subtransaction()->subtransaction()->commit() );
    TEST_EXECUTE( connection->transaction()->subtransaction()->subtransaction()->rollback() );
 
-   TEST_EXECUTE( (void)connection->transaction( tao::pq::transaction::isolation_level::serializable ) );
-   TEST_EXECUTE( (void)connection->transaction( tao::pq::transaction::isolation_level::repeatable_read ) );
-   TEST_EXECUTE( (void)connection->transaction( tao::pq::transaction::isolation_level::read_committed ) );
-   TEST_EXECUTE( (void)connection->transaction( tao::pq::transaction::isolation_level::read_uncommitted ) );
+   TEST_EXECUTE( (void)connection->transaction( tao::pq::basic_transaction::isolation_level::serializable ) );
+   TEST_EXECUTE( (void)connection->transaction( tao::pq::basic_transaction::isolation_level::repeatable_read ) );
+   TEST_EXECUTE( (void)connection->transaction( tao::pq::basic_transaction::isolation_level::read_committed ) );
+   TEST_EXECUTE( (void)connection->transaction( tao::pq::basic_transaction::isolation_level::read_uncommitted ) );
 
    TEST_EXECUTE( check_nested( connection, connection->direct() ) );
    TEST_EXECUTE( check_nested( connection, connection->transaction() ) );

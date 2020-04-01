@@ -11,7 +11,7 @@
 
 namespace tao::pq
 {
-   table_writer::table_writer( const std::shared_ptr< transaction >& transaction, const std::string& statement )
+   table_writer::table_writer( const std::shared_ptr< basic_transaction >& transaction, const std::string& statement )
       : m_transaction( transaction )
    {
       result( PQexecParams( transaction->m_connection->m_pgconn.get(), statement.c_str(), 0, nullptr, nullptr, nullptr, nullptr, 0 ), result::mode_t::expect_copy_in );

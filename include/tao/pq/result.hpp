@@ -24,7 +24,7 @@
 
 namespace tao::pq
 {
-   class connection;
+   class basic_connection;
    class table_writer;
 
    namespace internal
@@ -40,7 +40,7 @@ namespace tao::pq
    class result
    {
    private:
-      friend class connection;
+      friend class basic_connection;
       friend class table_writer;
 
       const std::shared_ptr< PGresult > m_pgresult;
