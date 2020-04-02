@@ -40,11 +40,13 @@ namespace tao::pq
       explicit basic_transaction( const std::shared_ptr< basic_connection >& connection );
       virtual ~basic_transaction() = 0;
 
+   public:
       basic_transaction( const basic_transaction& ) = delete;
       basic_transaction( basic_transaction&& ) = delete;
       void operator=( const basic_transaction& ) = delete;
       void operator=( basic_transaction&& ) = delete;
 
+   protected:
       [[nodiscard]] virtual auto v_is_direct() const noexcept -> bool = 0;
 
       virtual void v_commit() = 0;
@@ -113,6 +115,8 @@ namespace tao::pq
       explicit transaction( const std::shared_ptr< basic_connection >& connection )
          : basic_transaction( connection )
       {}
+
+      ~transaction() override = default;
 
       transaction( const transaction& ) = delete;
       transaction( transaction&& ) = delete;
