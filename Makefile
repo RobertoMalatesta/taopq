@@ -55,19 +55,19 @@ LIBNAME := taopq
 all: check
 
 .PHONY: compile
-compile: $(BINARIES)
+compile: $(UNIT_TESTS)
 
 .PHONY: check
 check: $(UNIT_TESTS)
 	@set -e; for T in $(UNIT_TESTS); do echo $$T; $$T; done
 
-build/%.clang-tidy: % .clang-tidy
+$(BUILDDIR)/%.clang-tidy: % .clang-tidy
 	$(CLANG_TIDY) -quiet $< -- $(CXXSTD) $(INCFLAGS) $(CPPFLAGS) $(CXXFLAGS) 2>/dev/null
 	@mkdir -p $(@D)
 	@touch $@
 
 .PHONY: clang-tidy
-clang-tidy: $(CLANG_TIDY_HEADERS:%=build/%.clang-tidy) $(SOURCES:%=build/%.clang-tidy)
+clang-tidy: $(CLANG_TIDY_HEADERS:%=$(BUILDDIR)/%.clang-tidy) $(SOURCES:%=$(BUILDDIR)/%.clang-tidy)
 	@echo "All $(words $(CLANG_TIDY_HEADERS) $(SOURCES)) clang-tidy tests passed."
 
 .PHONY: clean
