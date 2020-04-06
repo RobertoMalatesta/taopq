@@ -400,13 +400,13 @@ namespace tao::pq::internal
    };
 
    template< typename ElementType, std::size_t Extent >
-   struct parameter_binary_traits< tao::span< ElementType, Extent >, std::enable_if_t< is_bytea_parameter< ElementType >::value > >
+   struct parameter_binary_traits< tao::pq::span< ElementType, Extent >, std::enable_if_t< is_bytea_parameter< ElementType >::value > >
    {
    private:
-      const tao::span< const ElementType, Extent > m_v;
+      const tao::pq::span< const ElementType, Extent > m_v;
 
    public:
-      explicit parameter_binary_traits( const tao::span< const ElementType, Extent > v ) noexcept
+      explicit parameter_binary_traits( const tao::pq::span< const ElementType, Extent > v ) noexcept
          : m_v( v )
       {}
 
