@@ -6,7 +6,7 @@
 
 namespace tao::pq::internal
 {
-   template< typename >
+   template< typename... >
    inline constexpr bool dependent_false = false;
 
 }  // namespace tao::pq::internal

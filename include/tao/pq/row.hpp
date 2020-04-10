@@ -12,6 +12,7 @@
 
 #include <tao/pq/field.hpp>
 #include <tao/pq/internal/demangle.hpp>
+#include <tao/pq/internal/dependent_false.hpp>
 #include <tao/pq/internal/printf.hpp>
 #include <tao/pq/internal/unreachable.hpp>
 #include <tao/pq/result_traits.hpp>
@@ -57,7 +58,7 @@ namespace tao::pq
       [[nodiscard]] auto get( const std::size_t /*unused*/ ) const noexcept
          -> std::enable_if_t< result_traits_size< T > == 0, T >
       {
-         static_assert( !std::is_same< T, T >::value, "tao::pq::result_traits<T>::size yields zero" );
+         static_assert( internal::dependent_false< T >, "tao::pq::result_traits<T>::size yields zero" );
          TAO_PQ_UNREACHABLE;
       }
 

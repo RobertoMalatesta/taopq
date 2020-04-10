@@ -10,6 +10,7 @@
 #include <type_traits>
 #include <utility>
 
+#include <tao/pq/internal/dependent_false.hpp>
 #include <tao/pq/internal/gen.hpp>
 #include <tao/pq/internal/printf.hpp>
 #include <tao/pq/parameter_traits.hpp>
@@ -107,7 +108,7 @@ namespace tao::pq
             return T( this->underlying_raw_ptr(), std::forward< A >( a ) );
          }
          else {
-            static_assert( std::is_void_v< T >, "no valid conversion from A to Traits" );
+            static_assert( internal::dependent_false< T >, "no valid conversion from A to Traits" );
          }
       }
 
