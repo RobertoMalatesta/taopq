@@ -13,6 +13,7 @@
 
 #include <libpq-fe.h>
 
+#include <tao/pq/internal/dependent_false.hpp>
 #include <tao/pq/internal/endian.hpp>
 #include <tao/pq/internal/is_bytea_parameter.hpp>
 #include <tao/pq/span.hpp>
@@ -24,7 +25,7 @@ namespace tao::pq::internal
    {
       static constexpr std::size_t columns = 1;
 
-      static_assert( sizeof( T ) == 0, "data type T not registered as taopq parameter" );
+      static_assert( dependent_false< T >, "data type T not registered as taopq parameter" );
 
       template< std::size_t I >
       [[nodiscard]] static constexpr auto type() noexcept -> Oid

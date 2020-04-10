@@ -4,6 +4,7 @@
 #ifndef TAO_PQ_FIELD_HPP
 #define TAO_PQ_FIELD_HPP
 
+#include <tao/pq/internal/unreachable.hpp>
 #include <tao/pq/null.hpp>
 #include <tao/pq/result_traits.hpp>
 
@@ -38,7 +39,7 @@ namespace tao::pq
          -> std::enable_if_t< result_traits_size< T > != 1, T >
       {
          static_assert( !std::is_same_v< T, T >, "tao::pq::result_traits<T>::size does not yield exactly one column for T, which is required for field access" );
-         __builtin_unreachable();
+         TAO_PQ_UNREACHABLE;
       }
 
       template< typename T >

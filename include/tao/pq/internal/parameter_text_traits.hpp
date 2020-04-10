@@ -8,8 +8,9 @@
 #include <cstddef>
 #include <stdexcept>
 #include <string>
-#include <utility>
+#include <type_traits>
 
+#include <tao/pq/internal/dependent_false.hpp>
 #include <tao/pq/internal/is_bytea_parameter.hpp>
 #include <tao/pq/internal/parameter_traits_helper.hpp>
 #include <tao/pq/internal/printf.hpp>
@@ -34,7 +35,7 @@ namespace tao::pq::internal
    template< typename T, typename = void >
    struct parameter_text_traits
    {
-      static_assert( sizeof( T ) == 0, "data type T not registered as taopq parameter" );
+      static_assert( dependent_false< T >, "data type T not registered as taopq parameter" );
 
       static constexpr std::size_t columns = 1;
 

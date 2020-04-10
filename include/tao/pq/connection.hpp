@@ -11,6 +11,7 @@
 
 #include <libpq-fe.h>
 
+#include <tao/pq/internal/unreachable.hpp>
 #include <tao/pq/result.hpp>
 #include <tao/pq/transaction.hpp>
 
@@ -157,8 +158,7 @@ namespace tao::pq
             case basic_transaction::isolation_level::read_uncommitted:
                return "START TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
          }
-         assert( !"code should be unreachable" );                   // LCOV_EXCL_LINE
-         throw std::runtime_error( "code should be unreachable" );  // LCOV_EXCL_LINE
+         TAO_PQ_UNREACHABLE;
       }
 
    public:
@@ -223,7 +223,7 @@ namespace tao::pq
 
       ~connection() = default;
 
-      static auto create( const std::string& connection_info )
+      [[nodiscard]] static auto create( const std::string& connection_info )
       {
          return std::make_shared< connection >( connection_info );
       }
