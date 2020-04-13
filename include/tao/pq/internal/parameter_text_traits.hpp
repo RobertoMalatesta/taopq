@@ -209,7 +209,7 @@ namespace tao::pq::internal
    };
 
    template< typename ElementType, std::size_t Extent >
-   struct parameter_text_traits< tao::pq::span< ElementType, Extent >, std::enable_if_t< is_bytea_parameter< ElementType >::value > >  // NOLINT(cppcoreguidelines-special-member-functions)
+   struct parameter_text_traits< tao::pq::span< ElementType, Extent >, std::enable_if_t< is_bytea_parameter< ElementType > > >  // NOLINT(cppcoreguidelines-special-member-functions)
    {
    private:
       unsigned char* m_data;
