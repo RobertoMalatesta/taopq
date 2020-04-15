@@ -14,8 +14,6 @@
 #include <tao/pq/internal/gen.hpp>
 #include <tao/pq/internal/printf.hpp>
 #include <tao/pq/internal/transaction.hpp>
-#include <tao/pq/parameter_traits.hpp>
-#include <tao/pq/result.hpp>
 
 namespace tao::pq
 {
@@ -99,136 +97,140 @@ namespace tao::pq
       }
    };
 
-   template< template< typename... > class Traits >
-   class subtransaction_base
-      : public transaction< Traits >
+   namespace internal
    {
-   private:
-      const std::shared_ptr< internal::transaction > m_previous;
-
-   protected:
-      explicit subtransaction_base( const std::shared_ptr< internal::connection >& connection )
-         : transaction< Traits >( connection ),
-           m_previous( this->current_transaction()->shared_from_this() )
+      template< template< typename... > class Traits >
+      class subtransaction_base
+         : public pq::transaction< Traits >
       {
-         this->current_transaction() = this;
-      }
+      private:
+         const std::shared_ptr< transaction > m_previous;
 
-      ~subtransaction_base() override
-      {
-         if( this->m_connection ) {
-            this->current_transaction() = m_previous.get();  // LCOV_EXCL_LINE
+      protected:
+         explicit subtransaction_base( const std::shared_ptr< connection >& connection )
+            : pq::transaction< Traits >( connection ),
+              m_previous( this->current_transaction()->shared_from_this() )
+         {
+            this->current_transaction() = this;
          }
-      }
 
-      [[nodiscard]] auto v_is_direct() const noexcept -> bool override
-      {
-         return false;
-      }
-
-      void v_reset() noexcept override
-      {
-         this->current_transaction() = m_previous.get();
-         this->m_connection.reset();
-      }
-
-   public:
-      subtransaction_base( const subtransaction_base& ) = delete;
-      subtransaction_base( subtransaction_base&& ) = delete;
-      void operator=( const subtransaction_base& ) = delete;
-      void operator=( subtransaction_base&& ) = delete;
-   };
-
-   template< template< typename... > class Traits >
-   class top_level_subtransaction final
-      : public subtransaction_base< Traits >
-   {
-   public:
-      explicit top_level_subtransaction( const std::shared_ptr< internal::connection >& connection )
-         : subtransaction_base< Traits >( connection )
-      {
-         this->execute( "START TRANSACTION" );
-      }
-
-      ~top_level_subtransaction() override
-      {
-         if( this->m_connection && this->m_connection->is_open() ) {
-            try {
-               this->rollback();
+         ~subtransaction_base() override
+         {
+            if( this->m_connection ) {
+               this->current_transaction() = m_previous.get();  // LCOV_EXCL_LINE
             }
-            // LCOV_EXCL_START
-            catch( const std::exception& ) {
-               // TAO_LOG( WARNING, "unable to rollback transaction, swallowing exception: " + std::string( e.what() ) );
-            }
-            catch( ... ) {
-               // TAO_LOG( WARNING, "unable to rollback transaction, swallowing unknown exception" );
-            }
-            // LCOV_EXCL_STOP
          }
-      }
 
-      top_level_subtransaction( const top_level_subtransaction& ) = delete;
-      top_level_subtransaction( top_level_subtransaction&& ) = delete;
-      void operator=( const top_level_subtransaction& ) = delete;
-      void operator=( top_level_subtransaction&& ) = delete;
-
-   private:
-      void v_commit() override
-      {
-         this->execute( "COMMIT TRANSACTION" );
-      }
-
-      void v_rollback() override
-      {
-         this->execute( "ROLLBACK TRANSACTION" );
-      }
-   };
-
-   template< template< typename... > class Traits >
-   class nested_subtransaction final
-      : public subtransaction_base< Traits >
-   {
-   public:
-      explicit nested_subtransaction( const std::shared_ptr< internal::connection >& connection )
-         : subtransaction_base< Traits >( connection )
-      {
-         this->execute( internal::printf( "SAVEPOINT \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
-      }
-
-      ~nested_subtransaction() override
-      {
-         if( this->m_connection && this->m_connection->is_open() ) {
-            try {
-               this->rollback();
-            }
-            // LCOV_EXCL_START
-            catch( const std::exception& ) {
-               // TODO: Add more information about exception when available
-               // TAO_LOG( WARNING, "unable to rollback transaction, swallowing exception: " + std::string( e.what() ) );
-            }
-            catch( ... ) {
-               // TAO_LOG( WARNING, "unable to rollback transaction, swallowing unknown exception" );
-            }
-            // LCOV_EXCL_STOP
+         [[nodiscard]] auto v_is_direct() const noexcept -> bool override
+         {
+            return false;
          }
-      }
 
-      nested_subtransaction( const nested_subtransaction& ) = delete;
-      nested_subtransaction( nested_subtransaction&& ) = delete;
-      void operator=( const nested_subtransaction& ) = delete;
-      void operator=( nested_subtransaction&& ) = delete;
+         void v_reset() noexcept override
+         {
+            this->current_transaction() = m_previous.get();
+            this->m_connection.reset();
+         }
 
-   private:
-      void v_commit() override
+      public:
+         subtransaction_base( const subtransaction_base& ) = delete;
+         subtransaction_base( subtransaction_base&& ) = delete;
+         void operator=( const subtransaction_base& ) = delete;
+         void operator=( subtransaction_base&& ) = delete;
+      };
+
+      template< template< typename... > class Traits >
+      class top_level_subtransaction final
+         : public subtransaction_base< Traits >
       {
-         this->execute( internal::printf( "RELEASE SAVEPOINT \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
-      }
+      public:
+         explicit top_level_subtransaction( const std::shared_ptr< connection >& connection )
+            : subtransaction_base< Traits >( connection )
+         {
+            this->execute( "START TRANSACTION" );
+         }
 
-      void v_rollback() override
+         ~top_level_subtransaction() override
+         {
+            if( this->m_connection && this->m_connection->is_open() ) {
+               try {
+                  this->rollback();
+               }
+               // LCOV_EXCL_START
+               catch( const std::exception& ) {
+                  // TAO_LOG( WARNING, "unable to rollback transaction, swallowing exception: " + std::string( e.what() ) );
+               }
+               catch( ... ) {
+                  // TAO_LOG( WARNING, "unable to rollback transaction, swallowing unknown exception" );
+               }
+               // LCOV_EXCL_STOP
+            }
+         }
+
+         top_level_subtransaction( const top_level_subtransaction& ) = delete;
+         top_level_subtransaction( top_level_subtransaction&& ) = delete;
+         void operator=( const top_level_subtransaction& ) = delete;
+         void operator=( top_level_subtransaction&& ) = delete;
+
+      private:
+         void v_commit() override
+         {
+            this->execute( "COMMIT TRANSACTION" );
+         }
+
+         void v_rollback() override
+         {
+            this->execute( "ROLLBACK TRANSACTION" );
+         }
+      };
+
+      template< template< typename... > class Traits >
+      class nested_subtransaction final
+         : public subtransaction_base< Traits >
       {
-         this->execute( internal::printf( "ROLLBACK TO \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
-      }
-   };
+      public:
+         explicit nested_subtransaction( const std::shared_ptr< connection >& connection )
+            : subtransaction_base< Traits >( connection )
+         {
+            this->execute( printf( "SAVEPOINT \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
+         }
+
+         ~nested_subtransaction() override
+         {
+            if( this->m_connection && this->m_connection->is_open() ) {
+               try {
+                  this->rollback();
+               }
+               // LCOV_EXCL_START
+               catch( const std::exception& ) {
+                  // TODO: Add more information about exception when available
+                  // TAO_LOG( WARNING, "unable to rollback transaction, swallowing exception: " + std::string( e.what() ) );
+               }
+               catch( ... ) {
+                  // TAO_LOG( WARNING, "unable to rollback transaction, swallowing unknown exception" );
+               }
+               // LCOV_EXCL_STOP
+            }
+         }
+
+         nested_subtransaction( const nested_subtransaction& ) = delete;
+         nested_subtransaction( nested_subtransaction&& ) = delete;
+         void operator=( const nested_subtransaction& ) = delete;
+         void operator=( nested_subtransaction&& ) = delete;
+
+      private:
+         void v_commit() override
+         {
+            this->execute( printf( "RELEASE SAVEPOINT \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
+         }
+
+         void v_rollback() override
+         {
+            this->execute( printf( "ROLLBACK TO \"TAOPQ_%p\"", static_cast< void* >( this ) ) );
+         }
+      };
+
+   }  // namespace internal
 
    template< template< typename... > class DefaultTraits >
    template< template< typename... > class Traits >
@@ -236,9 +238,9 @@ namespace tao::pq
    {
       check_current_transaction();
       if( v_is_direct() ) {
-         return std::make_shared< top_level_subtransaction< Traits > >( m_connection );
+         return std::make_shared< internal::top_level_subtransaction< Traits > >( m_connection );
       }
-      return std::make_shared< nested_subtransaction< Traits > >( m_connection );
+      return std::make_shared< internal::nested_subtransaction< Traits > >( m_connection );
    }
 
 }  // namespace tao::pq
