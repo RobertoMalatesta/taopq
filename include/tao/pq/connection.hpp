@@ -1,4 +1,3 @@
-
 // Copyright (c) 2016-2020 Daniel Frey and Dr. Colin Hirsch
 // Please see LICENSE for license or visit https://github.com/taocpp/taopq/
 
@@ -11,13 +10,11 @@
 
 #include <tao/pq/internal/connection.hpp>
 #include <tao/pq/internal/unreachable.hpp>
+#include <tao/pq/isolation_level.hpp>
 #include <tao/pq/transaction.hpp>
 
 namespace tao::pq
 {
-   template< template< typename... > class DefaultTraits >
-   class connection_pool;
-
    template< template< typename... > class Traits >
    class transaction_base
       : public transaction< Traits >
@@ -79,25 +76,25 @@ namespace tao::pq
       : public transaction_base< Traits >
    {
    private:
-      [[nodiscard]] static auto isolation_level_to_statement( const basic_transaction::isolation_level il ) -> const char*
+      [[nodiscard]] static auto isolation_level_to_statement( const isolation_level il ) -> const char*
       {
          switch( il ) {
-            case basic_transaction::isolation_level::default_isolation_level:
+            case isolation_level::default_isolation_level:
                return "START TRANSACTION";
-            case basic_transaction::isolation_level::serializable:
+            case isolation_level::serializable:
                return "START TRANSACTION ISOLATION LEVEL SERIALIZABLE";
-            case basic_transaction::isolation_level::repeatable_read:
+            case isolation_level::repeatable_read:
                return "START TRANSACTION ISOLATION LEVEL REPEATABLE READ";
-            case basic_transaction::isolation_level::read_committed:
+            case isolation_level::read_committed:
                return "START TRANSACTION ISOLATION LEVEL READ COMMITTED";
-            case basic_transaction::isolation_level::read_uncommitted:
+            case isolation_level::read_uncommitted:
                return "START TRANSACTION ISOLATION LEVEL READ UNCOMMITTED";
          }
          TAO_PQ_UNREACHABLE;
       }
 
    public:
-      explicit top_level_transaction( const basic_transaction::isolation_level il, const std::shared_ptr< internal::connection >& connection )
+      explicit top_level_transaction( const isolation_level il, const std::shared_ptr< internal::connection >& connection )
          : transaction_base< Traits >( connection )
       {
          this->execute( isolation_level_to_statement( il ) );
@@ -170,7 +167,7 @@ namespace tao::pq
       }
 
       template< template< typename... > class Traits = DefaultTraits >
-      [[nodiscard]] auto transaction( const basic_transaction::isolation_level il = basic_transaction::isolation_level::default_isolation_level ) -> std::shared_ptr< transaction< Traits > >
+      [[nodiscard]] auto transaction( const isolation_level il = isolation_level::default_isolation_level ) -> std::shared_ptr< transaction< Traits > >
       {
          return std::make_shared< top_level_transaction< Traits > >( il, shared_from_this() );
       }

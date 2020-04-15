@@ -13,6 +13,7 @@
 #include <tao/pq/internal/dependent_false.hpp>
 #include <tao/pq/internal/gen.hpp>
 #include <tao/pq/internal/printf.hpp>
+#include <tao/pq/internal/transaction.hpp>
 #include <tao/pq/parameter_traits.hpp>
 #include <tao/pq/result.hpp>
 
@@ -23,62 +24,9 @@ namespace tao::pq
       class connection;
    }
 
-   class table_writer;
-
-   class basic_transaction
-      : public std::enable_shared_from_this< basic_transaction >
-   {
-   public:
-      enum class isolation_level
-      {
-         default_isolation_level,
-         serializable,
-         repeatable_read,
-         read_committed,
-         read_uncommitted
-      };
-      friend class table_writer;
-
-   protected:
-      std::shared_ptr< internal::connection > m_connection;
-
-      explicit basic_transaction( const std::shared_ptr< internal::connection >& connection );
-      virtual ~basic_transaction() = 0;
-
-   public:
-      basic_transaction( const basic_transaction& ) = delete;
-      basic_transaction( basic_transaction&& ) = delete;
-      void operator=( const basic_transaction& ) = delete;
-      void operator=( basic_transaction&& ) = delete;
-
-   protected:
-      [[nodiscard]] virtual auto v_is_direct() const noexcept -> bool = 0;
-
-      virtual void v_commit() = 0;
-      virtual void v_rollback() = 0;
-
-      virtual void v_reset() noexcept = 0;
-
-      [[nodiscard]] auto current_transaction() const noexcept -> basic_transaction*&;
-      void check_current_transaction() const;
-
-      [[nodiscard]] auto execute_params( const char* statement,
-                                         const int n_params,
-                                         const Oid types[],
-                                         const char* const values[],
-                                         const int lengths[],
-                                         const int formats[] ) -> result;
-
-      auto underlying_raw_ptr() const noexcept -> PGconn*;
-
-   public:
-      void commit();
-      void rollback();
-   };
-
    template< template< typename... > class DefaultTraits >
    class transaction
-      : public basic_transaction
+      : public internal::transaction
    {
    private:
       template< std::size_t... Os, std::size_t... Is, typename... Ts >
@@ -118,7 +66,7 @@ namespace tao::pq
 
    public:
       explicit transaction( const std::shared_ptr< internal::connection >& connection )
-         : basic_transaction( connection )
+         : internal::transaction( connection )
       {}
 
       ~transaction() override = default;
@@ -156,7 +104,7 @@ namespace tao::pq
       : public transaction< Traits >
    {
    private:
-      const std::shared_ptr< basic_transaction > m_previous;
+      const std::shared_ptr< internal::transaction > m_previous;
 
    protected:
       explicit subtransaction_base( const std::shared_ptr< internal::connection >& connection )
