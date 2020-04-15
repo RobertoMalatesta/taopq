@@ -33,14 +33,21 @@ namespace tao::pq
          return c.is_open();
       }
 
+      // pass-key idiom
+      class private_key
+      {
+         private_key() = default;
+         friend auto connection_pool::create( const std::string& connection_info ) -> std::shared_ptr< connection_pool >;
+      };
+
    public:
-      explicit connection_pool( const std::string& connection_info ) noexcept  // NOLINT(modernize-pass-by-value)
+      connection_pool( const private_key& /*unused*/, const std::string& connection_info ) noexcept  // NOLINT(modernize-pass-by-value)
          : m_connection_info( connection_info )
       {}
 
       [[nodiscard]] static auto create( const std::string& connection_info ) -> std::shared_ptr< connection_pool >
       {
-         return std::make_shared< connection_pool >( connection_info );
+         return std::make_shared< connection_pool >( private_key(), connection_info );
       }
 
       [[nodiscard]] auto connection()

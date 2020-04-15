@@ -18,7 +18,11 @@
 
 namespace tao::pq
 {
-   class basic_connection;
+   namespace internal
+   {
+      class connection;
+   }
+
    class table_writer;
 
    class basic_transaction
@@ -36,9 +40,9 @@ namespace tao::pq
       friend class table_writer;
 
    protected:
-      std::shared_ptr< basic_connection > m_connection;
+      std::shared_ptr< internal::connection > m_connection;
 
-      explicit basic_transaction( const std::shared_ptr< basic_connection >& connection );
+      explicit basic_transaction( const std::shared_ptr< internal::connection >& connection );
       virtual ~basic_transaction() = 0;
 
    public:
@@ -113,7 +117,7 @@ namespace tao::pq
       }
 
    public:
-      explicit transaction( const std::shared_ptr< basic_connection >& connection )
+      explicit transaction( const std::shared_ptr< internal::connection >& connection )
          : basic_transaction( connection )
       {}
 
@@ -155,7 +159,7 @@ namespace tao::pq
       const std::shared_ptr< basic_transaction > m_previous;
 
    protected:
-      explicit subtransaction_base( const std::shared_ptr< basic_connection >& connection )
+      explicit subtransaction_base( const std::shared_ptr< internal::connection >& connection )
          : transaction< Traits >( connection ),
            m_previous( this->current_transaction()->shared_from_this() )
       {
@@ -192,7 +196,7 @@ namespace tao::pq
       : public subtransaction_base< Traits >
    {
    public:
-      explicit top_level_subtransaction( const std::shared_ptr< basic_connection >& connection )
+      explicit top_level_subtransaction( const std::shared_ptr< internal::connection >& connection )
          : subtransaction_base< Traits >( connection )
       {
          this->execute( "START TRANSACTION" );
@@ -237,7 +241,7 @@ namespace tao::pq
       : public subtransaction_base< Traits >
    {
    public:
-      explicit nested_subtransaction( const std::shared_ptr< basic_connection >& connection )
+      explicit nested_subtransaction( const std::shared_ptr< internal::connection >& connection )
          : subtransaction_base< Traits >( connection )
       {
          this->execute( internal::printf( "SAVEPOINT \"TAOPQ_%p\"", static_cast< void* >( this ) ) );

@@ -5,12 +5,12 @@
 
 #include <stdexcept>
 
-#include <tao/pq/connection.hpp>
+#include <tao/pq/internal/connection.hpp>
 #include <tao/pq/internal/printf.hpp>
 
 namespace tao::pq
 {
-   basic_transaction::basic_transaction( const std::shared_ptr< basic_connection >& connection )  // NOLINT(modernize-pass-by-value)
+   basic_transaction::basic_transaction( const std::shared_ptr< internal::connection >& connection )  // NOLINT(modernize-pass-by-value)
       : m_connection( connection )
    {}
 

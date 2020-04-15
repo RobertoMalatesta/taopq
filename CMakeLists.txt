@@ -17,6 +17,7 @@ set(TAOPQ_INCLUDE_FILES
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/connection.hpp
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/connection_pool.hpp
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/field.hpp
+  ${TAOPQ_INCLUDE_DIRS}/tao/pq/internal/connection.hpp
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/internal/demangle.hpp
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/internal/endian.hpp
   ${TAOPQ_INCLUDE_DIRS}/tao/pq/internal/endian_gcc.hpp
@@ -45,8 +46,8 @@ set(TAOPQ_INCLUDE_FILES
 )
 
 set(TAOPQ_SOURCE_FILES
-  ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/connection.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/field.cpp
+  ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/internal/connection.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/internal/demangle.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/internal/printf.cpp
   ${CMAKE_CURRENT_LIST_DIR}/src/lib/pq/internal/strtox.cpp

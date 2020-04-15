@@ -1,3 +1,4 @@
+
 // Copyright (c) 2016-2020 Daniel Frey and Dr. Colin Hirsch
 // Please see LICENSE for license or visit https://github.com/taocpp/taopq/
 
@@ -5,14 +6,11 @@
 #define TAO_PQ_CONNECTION_HPP
 
 #include <memory>
-#include <set>
 #include <string>
 #include <utility>
 
-#include <libpq-fe.h>
-
+#include <tao/pq/internal/connection.hpp>
 #include <tao/pq/internal/unreachable.hpp>
-#include <tao/pq/result.hpp>
 #include <tao/pq/transaction.hpp>
 
 namespace tao::pq
@@ -20,75 +18,12 @@ namespace tao::pq
    template< template< typename... > class DefaultTraits >
    class connection_pool;
 
-   class table_writer;
-
-   namespace internal
-   {
-      struct deleter final
-      {
-         void operator()( PGconn* p ) const noexcept
-         {
-            PQfinish( p );
-         }
-      };
-
-   }  // namespace internal
-
-   class basic_connection
-      : public std::enable_shared_from_this< basic_connection >
-   {
-   private:
-      // friend class connection_pool;
-      friend class basic_transaction;
-      friend class table_writer;
-
-      const std::unique_ptr< PGconn, internal::deleter > m_pgconn;
-      basic_transaction* m_current_transaction;
-      std::set< std::string, std::less<> > m_prepared_statements;
-
-      [[nodiscard]] auto error_message() const -> std::string;
-      static void check_prepared_name( const std::string& name );
-      [[nodiscard]] auto is_prepared( const char* name ) const noexcept -> bool;
-
-      [[nodiscard]] auto execute_params( const char* statement,
-                                         const int n_params,
-                                         const Oid types[],
-                                         const char* const values[],
-                                         const int lengths[],
-                                         const int formats[] ) -> result;
-
-   public:
-      explicit basic_connection( const std::string& connection_info );
-
-      basic_connection( const basic_connection& ) = delete;
-      basic_connection( basic_connection&& ) = delete;
-      void operator=( const basic_connection& ) = delete;
-      void operator=( basic_connection&& ) = delete;
-
-      ~basic_connection() = default;
-
-      [[nodiscard]] auto is_open() const noexcept -> bool;
-
-      void prepare( const std::string& name, const std::string& statement );
-      void deallocate( const std::string& name );
-
-      [[nodiscard]] auto underlying_raw_ptr() noexcept -> PGconn*
-      {
-         return m_pgconn.get();
-      }
-
-      [[nodiscard]] auto underlying_raw_ptr() const noexcept -> const PGconn*
-      {
-         return m_pgconn.get();
-      }
-   };
-
    template< template< typename... > class Traits >
    class transaction_base
       : public transaction< Traits >
    {
    protected:
-      explicit transaction_base( const std::shared_ptr< basic_connection >& connection )
+      explicit transaction_base( const std::shared_ptr< internal::connection >& connection )
          : transaction< Traits >( connection )
       {
          if( this->current_transaction() != nullptr ) {
@@ -122,7 +57,7 @@ namespace tao::pq
       : public transaction_base< Traits >
    {
    public:
-      explicit autocommit_transaction( const std::shared_ptr< basic_connection >& connection )
+      explicit autocommit_transaction( const std::shared_ptr< internal::connection >& connection )
          : transaction_base< Traits >( connection )
       {}
 
@@ -162,7 +97,7 @@ namespace tao::pq
       }
 
    public:
-      explicit top_level_transaction( const basic_transaction::isolation_level il, const std::shared_ptr< basic_connection >& connection )
+      explicit top_level_transaction( const basic_transaction::isolation_level il, const std::shared_ptr< internal::connection >& connection )
          : transaction_base< Traits >( connection )
       {
          this->execute( isolation_level_to_statement( il ) );
@@ -209,11 +144,11 @@ namespace tao::pq
 
    template< template< typename... > class DefaultTraits = parameter_text_traits >
    class connection final
-      : public basic_connection
+      : public internal::connection
    {
    public:
       explicit connection( const std::string& connection_info )
-         : basic_connection( connection_info )
+         : internal::connection( connection_info )
       {}
 
       connection( const connection& ) = delete;
