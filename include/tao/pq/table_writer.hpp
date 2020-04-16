@@ -12,7 +12,8 @@ namespace tao::pq
    namespace internal
    {
       class transaction;
-   }
+
+   }  // namespace internal
 
    class table_writer
    {

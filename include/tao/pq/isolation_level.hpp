@@ -15,6 +15,6 @@ namespace tao::pq
       read_uncommitted
    };
 
-}
+}  // namespace tao::pq
 
 #endif

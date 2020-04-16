@@ -24,15 +24,12 @@
 
 namespace tao::pq
 {
-   namespace internal
-   {
-      class connection;
-   }
-
    class table_writer;
 
    namespace internal
    {
+      class connection;
+
       template< typename T, typename = void >
       inline constexpr bool has_reserve = false;
 

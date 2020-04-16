@@ -20,7 +20,8 @@ namespace tao::pq
    namespace internal
    {
       class connection;
-   }
+
+   }  // namespace internal
 
    template< template< typename... > class DefaultTraits >
    class transaction

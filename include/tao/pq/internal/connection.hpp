@@ -54,6 +54,7 @@ namespace tao::pq
       protected:
          explicit connection( const std::string& connection_info );
 
+      public:
          connection( const connection& ) = delete;
          connection( connection&& ) = delete;
          void operator=( const connection& ) = delete;
@@ -61,7 +62,6 @@ namespace tao::pq
 
          ~connection() = default;
 
-      public:
          [[nodiscard]] auto is_open() const noexcept -> bool;
 
          void prepare( const std::string& name, const std::string& statement );
