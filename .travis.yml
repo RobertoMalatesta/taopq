@@ -67,7 +67,7 @@ jobs:
     - compiler: clang
       addons:
         apt:
-          sources: &clang-9-sources
+          sources:
             - ubuntu-toolchain-r-test
             - sourceline: deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main
               key_url: https://apt.llvm.org/llvm-snapshot.gpg.key
@@ -138,10 +138,10 @@ jobs:
     - compiler: clang
       addons:
         apt:
-          sources: *clang-9-sources
-          packages: [ clang-format-9, g++-9, libpq-dev ]
+          sources: *clang-10-sources
+          packages: [ clang-format-10, g++-9, libpq-dev ]
       script:
-        - clang-format-9 -i -style=file $(find . -name '[^.]*.[hc]pp')
+        - clang-format-10 -i -style=file $(find . -name '[^.]*.[hc]pp')
         - git diff --exit-code
 
 script:
